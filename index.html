@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Nk Login</title>
+  <style>
+    body { background: #f0f2f5; font-family: Arial, sans-serif; }
+    .login-container, .links-container {
+      max-width: 340px; margin: 100px auto;
+      background: #fff; padding: 32px 24px; border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .login-container h2, .links-container h2 { text-align: center; margin-bottom: 24px; }
+    .login-container input {
+      width: 100%; padding: 10px 8px; margin-bottom: 16px;
+      border: 1px solid #ddd; border-radius: 4px; font-size: 16px;
+    }
+    .login-container button, .links-container button {
+      width: 100%; padding: 10px; background: #1976d2; color: #fff;
+      border: none; border-radius: 4px; font-size: 16px; cursor: pointer; margin-bottom: 10px;
+      transition: background 0.2s;
+    }
+    .login-container button:hover, .links-container button:hover { background: #1565c0; }
+    .error { color: #d32f2f; margin-bottom: 12px; text-align: center; }
+    .success { color: #388e3c; margin-bottom: 12px; text-align: center; }
+    .links-container { display: none; }
+  </style>
+</head>
+<body>
+  <div class="login-container" id="loginBox">
+    <h2>Login</h2>
+    <div id="message"></div>
+    <input type="text" id="userid" placeholder="User ID" autocomplete="off" />
+    <input type="password" id="password" placeholder="Password" autocomplete="off" />
+    <button onclick="login()">Login</button>
+  </div>
+
+  <div class="links-container" id="linksBox">
+    <h2>Welcome!</h2>
+    <div id="linksList"></div>
+    <button onclick="logout()" style="background:#d32f2f;">Logout</button>
+  </div>
+
+  <script>
+    // Add your links here: { label: 'Button Text', url: 'https://...' }
+    const links = [
+      { label: "Google", url: "https://www.google.com" },
+      { label: "GitHub", url: "https://github.com" },
+      { label: "Copilot", url: "https://github.com/features/preview/copilot-x" },
+      // Add more links as needed
+    ];
+
+    function showLinks() {
+      document.getElementById('loginBox').style.display = 'none';
+      document.getElementById('linksBox').style.display = 'block';
+      const list = document.getElementById('linksList');
+      list.innerHTML = '';
+      links.forEach(link => {
+        const btn = document.createElement('button');
+        btn.innerText = link.label;
+        btn.onclick = () => window.open(link.url, '_blank');
+        list.appendChild(btn);
+      });
+    }
+    function logout() {
+      localStorage.removeItem('loggedIn');
+      document.getElementById('linksBox').style.display = 'none';
+      document.getElementById('loginBox').style.display = 'block';
+      document.getElementById('userid').value = '';
+      document.getElementById('password').value = '';
+      document.getElementById('message').innerHTML = '';
+    }
+    async function login() {
+      const userId = document.getElementById('userid').value.trim();
+      const password = document.getElementById('password').value;
+      const messageDiv = document.getElementById('message');
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userid: userId, password: password })
+      });
+      const data = await res.json();
+      if (data.success) {
+        messageDiv.innerHTML = '<div class="success">Login successful!</div>';
+        localStorage.setItem('loggedIn', '1');
+        setTimeout(showLinks, 500);
+      } else {
+        messageDiv.innerHTML = `<div class="error">${data.message || "Login failed"}</div>`;
+      }
+    }
+    if (localStorage.getItem('loggedIn') === '1') {
+      window.onload = showLinks;
+    }
+  </script>
+</body>
+</html>
