@@ -2,95 +2,127 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Nk Login</title>
+  <title>NK Login </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { background: #f0f2f5; font-family: Arial, sans-serif; }
-    .login-container, .links-container {
-      max-width: 340px; margin: 100px auto;
-      background: #fff; padding: 32px 24px; border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    body { font-family: Arial, sans-serif; background: #eef2f7; margin:0; }
+    .container { max-width: 400px; margin: 60px auto; background: #fff; padding: 32px 24px; border-radius: 8px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.09);}
+    h2 { text-align: center; margin-bottom: 25px; }
+    input[type="text"], input[type="password"] {
+      width: 100%; padding: 11px 8px; margin-bottom: 16px;
+      border: 1px solid #ddd; border-radius: 4px; font-size: 17px;
     }
-    .login-container h2, .links-container h2 { text-align: center; margin-bottom: 24px; }
-    .login-container input {
-      width: 100%; padding: 10px 8px; margin-bottom: 16px;
-      border: 1px solid #ddd; border-radius: 4px; font-size: 16px;
-    }
-    .login-container button, .links-container button {
-      width: 100%; padding: 10px; background: #1976d2; color: #fff;
-      border: none; border-radius: 4px; font-size: 16px; cursor: pointer; margin-bottom: 10px;
+    button {
+      width: 100%; padding: 11px; background: #1976d2; color: #fff;
+      border: none; border-radius: 4px; font-size: 17px; cursor: pointer; margin-bottom: 10px;
       transition: background 0.2s;
     }
-    .login-container button:hover, .links-container button:hover { background: #1565c0; }
+    button:hover { background: #0953a4; }
     .error { color: #d32f2f; margin-bottom: 12px; text-align: center; }
     .success { color: #388e3c; margin-bottom: 12px; text-align: center; }
-    .links-container { display: none; }
+    .hidden { display: none; }
+    .extra-section {
+      margin-top: 30px; background: #fafcff; padding: 16px; border-radius: 6px;
+      border: 1px solid #e0e7ef;
+    }
+    .extra-section h3 { margin-top: 0; }
+    /* Add your own extra styles below */
   </style>
 </head>
 <body>
-  <div class="login-container" id="loginBox">
+  <div class="container" id="loginBox">
     <h2>Login</h2>
     <div id="message"></div>
     <input type="text" id="userid" placeholder="User ID" autocomplete="off" />
     <input type="password" id="password" placeholder="Password" autocomplete="off" />
     <button onclick="login()">Login</button>
+    <!-- You can add more UI elements here -->
+    <div class="extra-section">
+      <h3>Welcome!</h3>
+      <p>This is a customizable login app. You can add your own HTML, CSS, JS, buttons, links, info, or anything else here.</p>
+      <!-- Add more sections or buttons as you wish -->
+    </div>
   </div>
 
-  <div class="links-container" id="linksBox">
+  <div class="container hidden" id="linksBox">
     <h2>Welcome!</h2>
-    <div id="linksList"></div>
-    <button onclick="logout()" style="background:#d32f2f;">Logout</button>
+    <div id="linksList">
+      <!-- Example buttons/links after login - add/remove as needed -->
+      <button onclick="window.open('https://www.google.com')">Google</button>
+      <button onclick="window.open('https://github.com')">GitHub</button>
+      <!-- Add your own links/buttons here! -->
+    </div>
+    <button style="background:#d32f2f;" onclick="logout()">Logout</button>
+    <div class="extra-section">
+      <h3>Logged In Area</h3>
+      <p>Add more features, widgets, or content here for logged-in users.</p>
+    </div>
   </div>
 
   <script>
-    // Add your links here: { label: 'Button Text', url: 'https://...' }
-    const links = [
-      { label: "Google", url: "https://www.google.com" },
-      { label: "GitHub", url: "https://github.com" },
-      { label: "Copilot", url: "https://github.com/features/preview/copilot-x" },
-      // Add more links as needed
-    ];
+    // Generate or get persistent deviceId for this browser/device
+    function getDeviceId() {
+      let id = localStorage.getItem('deviceId');
+      if (!id) {
+        if (window.crypto && crypto.randomUUID) {
+          id = crypto.randomUUID();
+        } else {
+          // Fallback for older browsers
+          id = 'xxxxxx-4xxx-yxxx-xxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+          });
+        }
+        localStorage.setItem('deviceId', id);
+      }
+      return id;
+    }
+
+    async function login() {
+      const userId = document.getElementById('userid').value.trim();
+      const password = document.getElementById('password').value;
+      const deviceId = getDeviceId();
+      const messageDiv = document.getElementById('message');
+      messageDiv.innerHTML = "";
+
+      if (!userId || !password) {
+        messageDiv.innerHTML = '<div class="error">Enter both user ID and password.</div>';
+        return;
+      }
+
+      try {
+        const res = await fetch('https://deserted-dolomite-addition.glitch.me/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userid: userId, password: password, deviceId })
+        });
+        const data = await res.json();
+        if (data.success) {
+          messageDiv.innerHTML = '<div class="success">Login successful!</div>';
+          setTimeout(showLinks, 500);
+        } else {
+          messageDiv.innerHTML = `<div class="error">${data.message || "Login failed"}</div>`;
+        }
+      } catch (err) {
+        messageDiv.innerHTML = `<div class="error">Network error. Try again later.</div>`;
+      }
+    }
 
     function showLinks() {
-      document.getElementById('loginBox').style.display = 'none';
-      document.getElementById('linksBox').style.display = 'block';
-      const list = document.getElementById('linksList');
-      list.innerHTML = '';
-      links.forEach(link => {
-        const btn = document.createElement('button');
-        btn.innerText = link.label;
-        btn.onclick = () => window.open(link.url, '_blank');
-        list.appendChild(btn);
-      });
+      document.getElementById('loginBox').classList.add('hidden');
+      document.getElementById('linksBox').classList.remove('hidden');
     }
+
     function logout() {
-      localStorage.removeItem('loggedIn');
-      document.getElementById('linksBox').style.display = 'none';
-      document.getElementById('loginBox').style.display = 'block';
+      document.getElementById('linksBox').classList.add('hidden');
+      document.getElementById('loginBox').classList.remove('hidden');
       document.getElementById('userid').value = '';
       document.getElementById('password').value = '';
       document.getElementById('message').innerHTML = '';
     }
-    async function login() {
-      const userId = document.getElementById('userid').value.trim();
-      const password = document.getElementById('password').value;
-      const messageDiv = document.getElementById('message');
-      const res = await fetch('https://deserted-dolomite-addition.glitch.me/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userid: userId, password: password })
-      });
-      const data = await res.json();
-      if (data.success) {
-        messageDiv.innerHTML = '<div class="success">Login successful!</div>';
-        localStorage.setItem('loggedIn', '1');
-        setTimeout(showLinks, 500);
-      } else {
-        messageDiv.innerHTML = `<div class="error">${data.message || "Login failed"}</div>`;
-      }
-    }
-    if (localStorage.getItem('loggedIn') === '1') {
-      window.onload = showLinks;
-    }
+
+    // You can add more JS functions for your own custom features!
   </script>
 </body>
 </html>
